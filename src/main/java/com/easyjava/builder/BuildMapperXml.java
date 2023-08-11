@@ -140,7 +140,7 @@ public class BuildMapperXml {
             bw.write("\t</select>\n\n");
 
 //            查询数量
-            bw.write("\t<select id=\"selectCount\" resultType=\"Long\">\n");
+            bw.write("\t<select id=\"selectCount\" resultType=\"Integer\">\n");
             bw.write(String.format("\t\tselect count(1) from %s\n",tableInfo.getTableName()));
             bw.write(String.format("\t\t<include refid=\"%s\"/>\n",QUERY_CONDITION));
             bw.write("\t</select>\n\n");
