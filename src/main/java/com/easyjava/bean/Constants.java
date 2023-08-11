@@ -52,6 +52,7 @@ public class Constants {
     public static String SUFFIX_BEAN_QUERY_TIME_END;
     public static String SUFFIX_MAPPER;
     public static String PATH_MAPPER_XMLS;
+    public static boolean USE_LOMBOK;
 
     static {
         SUFFIX_BEAN_QUERY_FUZZY=PropertiesUtils.getString("suffix.bean.query.fuzzy");
@@ -102,6 +103,8 @@ public class Constants {
         BEAN_DATE_UNFORMAT_CLASS=PropertiesUtils.getString("bean.date.unformat.class");
 
         PATH_MAPPER_XMLS=PropertiesUtils.getString("path.base")+PATH_RESOURCES+"/"+PACKAGE_MAPPER.replace(".","/");
+
+        USE_LOMBOK=Boolean.parseBoolean(PropertiesUtils.getString("use.lombok"));
     }
 
 

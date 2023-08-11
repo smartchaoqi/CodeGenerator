@@ -34,6 +34,9 @@ public class BuildPo {
             bw.write("package "+Constants.PACKAGE_PO+";");
             bw.newLine();
             bw.newLine();
+            if (Constants.USE_LOMBOK){
+                bw.write("import lombok.Data;\n");
+            }
             bw.write("import java.io.Serializable;");
             bw.newLine();
 
@@ -62,6 +65,9 @@ public class BuildPo {
             bw.newLine();
             //构建类注释
             BuildComment.createClassComment(bw,tableInfo.getComment());
+            if (Constants.USE_LOMBOK){
+                bw.write("@Data\n");
+            }
 
             bw.write("public class "+tableInfo.getBeanName()+" implements Serializable {");
             bw.newLine();
@@ -94,46 +100,47 @@ public class BuildPo {
                 bw.newLine();
                 bw.newLine();
             }
+            if (!Constants.USE_LOMBOK) {
+                for (FieldInfo fieldInfo : tableInfo.getFieldList()) {
+                    String temField = com.easyjava.utils.StringUtils.upperCaseFirstLetter(fieldInfo.getPropertyName());
+                    bw.write(String.format("\tpublic void set%s(%s %s) {", temField, fieldInfo.getJavaType(), fieldInfo.getPropertyName()));
+                    bw.newLine();
+                    bw.write(String.format("\t\tthis.%s = %s;", fieldInfo.getPropertyName(), fieldInfo.getPropertyName()));
+                    bw.newLine();
+                    bw.write("\t}");
+                    bw.newLine();
+                    bw.newLine();
 
-            for (FieldInfo fieldInfo : tableInfo.getFieldList()) {
-                String temField = com.easyjava.utils.StringUtils.upperCaseFirstLetter(fieldInfo.getPropertyName());
-                bw.write(String.format("\tpublic void set%s(%s %s) {",temField,fieldInfo.getJavaType(),fieldInfo.getPropertyName()));
-                bw.newLine();
-                bw.write(String.format("\t\tthis.%s = %s;",fieldInfo.getPropertyName(),fieldInfo.getPropertyName()));
-                bw.newLine();
-                bw.write("\t}");
-                bw.newLine();
-                bw.newLine();
-
-                bw.write(String.format("\tpublic %s get%s() {",fieldInfo.getJavaType(),temField));
-                bw.newLine();
-                bw.write(String.format("\t\treturn %s;",fieldInfo.getPropertyName()));
-                bw.newLine();
-                bw.write("\t}");
-                bw.newLine();
-                bw.newLine();
-            }
+                    bw.write(String.format("\tpublic %s get%s() {", fieldInfo.getJavaType(), temField));
+                    bw.newLine();
+                    bw.write(String.format("\t\treturn %s;", fieldInfo.getPropertyName()));
+                    bw.newLine();
+                    bw.write("\t}");
+                    bw.newLine();
+                    bw.newLine();
+                }
 
 //            重写toString()
-            bw.write("\t@Override");
-            bw.newLine();
-            bw.write("\tpublic String toString() {");
-            bw.newLine();
-            bw.write(String.format("\t\treturn \"%s{\" +",tableInfo.getBeanName()));
-            bw.newLine();
-            for (int i = 0; i < tableInfo.getFieldList().size(); i++) {
-                FieldInfo fieldInfo = tableInfo.getFieldList().get(i);
-                if (i==0){
-                    bw.write(String.format("\t\t\t\t\"%s=\" + %s +",fieldInfo.getPropertyName(),fieldInfo.getPropertyName()));
-                }else{
-                    bw.write(String.format("\t\t\t\t\", %s=\" + %s +",fieldInfo.getPropertyName(),fieldInfo.getPropertyName()));
+                bw.write("\t@Override");
+                bw.newLine();
+                bw.write("\tpublic String toString() {");
+                bw.newLine();
+                bw.write(String.format("\t\treturn \"%s{\" +", tableInfo.getBeanName()));
+                bw.newLine();
+                for (int i = 0; i < tableInfo.getFieldList().size(); i++) {
+                    FieldInfo fieldInfo = tableInfo.getFieldList().get(i);
+                    if (i == 0) {
+                        bw.write(String.format("\t\t\t\t\"%s=\" + %s +", fieldInfo.getPropertyName(), fieldInfo.getPropertyName()));
+                    } else {
+                        bw.write(String.format("\t\t\t\t\", %s=\" + %s +", fieldInfo.getPropertyName(), fieldInfo.getPropertyName()));
+                    }
+                    bw.newLine();
                 }
+                bw.write("\t\t\t\t'}';");
+                bw.newLine();
+                bw.write("\t}");
                 bw.newLine();
             }
-            bw.write("\t\t\t\t'}';");
-            bw.newLine();
-            bw.write("\t}");
-            bw.newLine();
 
             bw.write("}");
             bw.flush();
