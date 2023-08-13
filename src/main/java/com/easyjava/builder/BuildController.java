@@ -39,9 +39,7 @@ public class BuildController {
             bw.write(String.format("import %s.%s;\n",Constants.PACKAGE_QUERY,tableInfo.getBeanParamName()));
             bw.write(String.format("import %s.ResponseVO;\n",Constants.PACKAGE_VO));
             bw.write(String.format("import %s.%sService;\n",Constants.PACKAGE_SERVICE,tableInfo.getBeanName()));
-            bw.write("import org.springframework.web.bind.annotation.RequestBody;\n");
-            bw.write("import org.springframework.web.bind.annotation.RestController;\n");
-            bw.write("import org.springframework.web.bind.annotation.RequestMapping;\n");
+            bw.write("import org.springframework.web.bind.annotation.*;\n");
             bw.newLine();
             bw.write("import javax.annotation.Resource;\n\n");
 
@@ -56,27 +54,27 @@ public class BuildController {
             bw.write(String.format("\tprivate %sService %s;\n\n", tableInfo.getBeanName(),serviceName));
 
             BuildComment.createFieldComment(bw,"根据条件分页查询");
-            bw.write("\t@RequestMapping(\"loadDataList\")\n");
-            bw.write(String.format("\tpublic ResponseVO loadDataList(%s query){\n",tableInfo.getBeanParamName()));
+            bw.write("\t@PostMapping(\"loadDataList\")\n");
+            bw.write(String.format("\tpublic ResponseVO loadDataList(@RequestBody %s query){\n",tableInfo.getBeanParamName()));
             bw.write(String.format("\t\treturn getSuccessResponseVO(%s.findListByParam(query));\n",serviceName));
             bw.write("\t}\n\n");
 
             BuildComment.createFieldComment(bw,"新增");
-            bw.write("\t@RequestMapping(\"add\")\n");
-            bw.write(String.format("\tpublic ResponseVO add(%s bean){\n",tableInfo.getBeanName()));
+            bw.write("\t@PostMapping(\"add\")\n");
+            bw.write(String.format("\tpublic ResponseVO add(@RequestBody %s bean){\n",tableInfo.getBeanName()));
             bw.write(String.format("\t\t%s.add(bean);\n",serviceName));
             bw.write("\t\treturn getSuccessResponseVO(null);\n");
             bw.write("\t}\n\n");
 
             BuildComment.createFieldComment(bw,"批量新增");
-            bw.write("\t@RequestMapping(\"addBatch\")\n");
+            bw.write("\t@PostMapping(\"addBatch\")\n");
             bw.write(String.format("\tpublic ResponseVO addBatch(@RequestBody List<%s> listBean){\n",tableInfo.getBeanName()));
             bw.write(String.format("\t\t%s.addBatch(listBean);\n",serviceName));
             bw.write("\t\treturn getSuccessResponseVO(null);\n");
             bw.write("\t}\n\n");
 
             BuildComment.createFieldComment(bw,"批量新增/修改");
-            bw.write("\t@RequestMapping(\"addOrUpdateBatch\")\n");
+            bw.write("\t@PostMapping(\"addOrUpdateBatch\")\n");
             bw.write(String.format("\tpublic ResponseVO addOrUpdateBatch(@RequestBody List<%s> listBean){\n",tableInfo.getBeanName()));
             bw.write(String.format("\t\t%s.addOrUpdateBatch(listBean);\n",serviceName));
             bw.write("\t\treturn getSuccessResponseVO(null);\n");
@@ -87,23 +85,25 @@ public class BuildController {
                 StringBuilder methodName = new StringBuilder();
                 StringBuilder methodParams = new StringBuilder();
                 StringBuilder param=new StringBuilder();
+                StringBuilder restfulPath = new StringBuilder();
 
                 List<FieldInfo> value = entry.getValue();
                 for (int i = 0; i < value.size(); i++) {
                     FieldInfo fieldInfo = value.get(i);
                     methodName.append(StringUtils.upperCaseFirstLetter(fieldInfo.getPropertyName()));
-                    methodParams.append(String.format("%s %s", fieldInfo.getJavaType(),fieldInfo.getPropertyName()));
+                    methodParams.append(String.format("@PathVariable(\"%s\") %s %s",fieldInfo.getPropertyName(), fieldInfo.getJavaType(),fieldInfo.getPropertyName()));
                     param.append(fieldInfo.getPropertyName());
                     if (i != value.size() - 1) {
                         methodName.append("And");
                         methodParams.append(",");
                         param.append(",");
                     }
+                    restfulPath.append(String.format("/{%s}",fieldInfo.getPropertyName()));
                 }
                 String methodDetail=tableInfo.getBeanName()+"By" + methodName;
 
                 BuildComment.createFieldComment(bw, "根据" + methodName + "查询");
-                bw.write(String.format("\t@RequestMapping(\"get%s\")\n",methodDetail));
+                bw.write(String.format("\t@GetMapping(\"get%s%s\")\n",methodDetail,restfulPath));
                 bw.write("\tpublic ResponseVO get"+methodDetail + "("+methodParams+"){");
                 bw.newLine();
                 bw.write(String.format("\t\t%s t = %s.get%sBy%s(%s);\n",tableInfo.getBeanName(),serviceName,tableInfo.getBeanName(),methodName,param));
@@ -111,15 +111,15 @@ public class BuildController {
                 bw.write("\t}\n\n");
 
                 BuildComment.createFieldComment(bw, "根据" + methodName + "修改");
-                bw.write(String.format("\t@RequestMapping(\"update%s\")\n",methodDetail));
-                bw.write("\tpublic ResponseVO update"+ methodDetail + "("+ tableInfo.getBeanName()+" t, "+methodParams+"){");
+                bw.write(String.format("\t@PutMapping(\"update%s%s\")\n",methodDetail,restfulPath));
+                bw.write("\tpublic ResponseVO update"+ methodDetail + "(@RequestBody "+ tableInfo.getBeanName()+" t, "+methodParams+"){");
                 bw.newLine();
                 bw.write(String.format("\t\tInteger integer = this.%s.update%s(t, %s);\n",serviceName,methodDetail,param));
                 bw.write("\t\treturn getSuccessResponseVO(integer);\n");
                 bw.write("\t}\n\n");
 
                 BuildComment.createFieldComment(bw, "根据" + methodName + "删除");
-                bw.write(String.format("\t@RequestMapping(\"delete%s\")\n",methodDetail));
+                bw.write(String.format("\t@DeleteMapping(\"delete%s%s\")\n",methodDetail,restfulPath));
                 bw.write("\tpublic ResponseVO delete"+ methodDetail + "("+methodParams+"){");
                 bw.newLine();
                 bw.write(String.format("\t\tInteger integer = this.%s.delete%s(%s);\n",serviceName,methodDetail,param));
